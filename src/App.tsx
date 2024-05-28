@@ -2,30 +2,8 @@ import { useState } from "react";
 import { AiFillPlusSquare } from "react-icons/ai";
 import { RiArrowDownSFill } from "react-icons/ri";
 import { ToDoList } from "./components/toDoList";
-import { Axios } from "axios";
 import { toDo } from "./models/toDo";
-import { useMutation, useQuery } from "@tanstack/react-query";
-import axios from "axios";
 
-async function fetchData(filter: string): Promise<toDo[]> {
-
-  let url = "https://jsonplaceholder.typicode.com/todos";
-
-  if (filter === "active") {
-    url += "?completed=false";
-  } else if (filter === "completed") {
-    url += "?completed=true";
-  }
-
-  const response = await fetch(url);
-
-  if (!response.ok) {
-    throw new Error("Failed to fetch data");
-  }
-
-  const data: toDo[] = await response.json();
-  return data;
-}
 
 function App() {
   const [list, setList] = useState<toDo[]>([]);
