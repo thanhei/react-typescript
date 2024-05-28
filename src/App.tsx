@@ -27,20 +27,62 @@ async function fetchData(filter: string): Promise<toDo[]> {
   return data;
 }
 
-
 function App() {
+  const [list, setList] = useState<toDo[]>([]);
+  const [text, setText] = useState("");
   const [filter, setFilter] = useState("all");
+  const [index, setIndex] = useState(-1);
 
-  const handleChange = (e:React.ChangeEvent<HTMLSelectElement>) => {
-    setFilter(e.target.value);
+  const handleChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    setFilter(event.target.value);
   };
 
 
+  
+  const handleAdd = () => {
+    if (text.trim() === "") return;
+
+    const newList =
+      index === -1
+        ? [...list, { id: list.length + 1, title: text, completed: false }]
+        : list.map((todo) =>
+            todo.id === index ? { ...todo, title: text } : todo
+          );
+
+    setList(newList);
+    setText("");
+    setIndex(-1);
+  };
+
+  const onCheck = (id: number) => {
+    setList(
+      list.map((todo) =>
+        todo.id === id ? { ...todo, completed: !todo.completed } : todo
+      )
+    );
+  };
+
+  const onUpdate = (id: number) => {
+    const todo: toDo | undefined = list.find((todo) => todo.id === id);
+    if (todo) {
+      setText(todo.title);
+      setIndex(todo.id);
+    }
+  };
+
+  const handleText = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setText(event.target.value);
+  };
+
+  const onRemove = (id: number) => {
+    setList(list.filter((todo) => todo.id !== id));
+  };
 
 
-  const { data } = useQuery({
-    queryKey: ["todo", filter],
-    queryFn: () => fetchData(filter),
+  const filteredList = list.filter(todo => {
+    if (filter === "completed") return todo.completed;
+    if (filter === "active") return !todo.completed;
+    return true;
   });
 
   return (
@@ -54,9 +96,14 @@ function App() {
               <div className="flex">
                 <input
                   type="text"
+                  onChange={handleText}
                   className="p-1 text-5xl focus: outline-none"
+                  value={text}
                 />
-                <AiFillPlusSquare className="h-full w-[50px] text-[#ff6f47] bg-white hover:text-white hover:bg-[#ff6f47] cursor-pointer " />
+                <AiFillPlusSquare
+                  onClick={() => handleAdd()}
+                  className="h-full w-[50px] text-[#ff6f47] bg-white hover:text-white hover:bg-[#ff6f47] cursor-pointer "
+                />
               </div>
               <div className="flex relative ml-6">
                 <select
@@ -71,7 +118,13 @@ function App() {
                 <RiArrowDownSFill className="h-[63px] w-[50px] text-white bg-[#ff6f47]  absolute right-0 p-2 pointer-events-none " />
               </div>
             </div>
-            {data && <ToDoList toDos={data} />}
+
+            <ToDoList
+              toDos={filteredList}
+              onCheck={onCheck}
+              onRemove={onRemove}
+              onUpdate={onUpdate}
+            />
           </div>
         </div>
       </div>
